@@ -1,0 +1,4 @@
+#summary Introdution in the Testboy framework.
+
+= Testboy =
+Testboy is a unit testing framework for client-side JavaScript. It's object-oriented and implements the [http://en.wikipedia.org/wiki/XUnit xUnit] architecture.
