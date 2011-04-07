@@ -1,4 +1,24 @@
 #summary Introdution in the Testboy framework.
 
 = Testboy =
-Testboy is a unit testing framework for client-side JavaScript. It's object-oriented and implements the [http://en.wikipedia.org/wiki/XUnit xUnit] architecture.
+Testboy is a unit testing framework for client-side JavaScript. It's object-oriented and implements the [http://en.wikipedia.org/wiki/XUnit xUnit] architecture. Testboy is a a standalone project and does not require additional JavaScript libraries to work.
+
+= testboy.js file = 
+All the framework code is contained in a single file named _testboy.js_. It does not require any JavaScript library for work, although it can be used along with any of them without conflicts because it has its own namespace. In order to write unit tests only one file has to be included on your test pages - testboy itself (_testboy.js_).
+
+= Test Case =
+Test case is the simplest collection of tests. In order to create a test you should create a test case and decorate it. There's a special function constructor in Testboy API: 'testboy.TestCase':
+{{{
+var myTestCase = new testboy.TestCase("My Test Case");
+
+myTestCase.testSomeFunction = function () {
+   // code 
+};
+}}}
+So the test here is the function with which the test case is decorated.
+
+== Test ==
+Test is a simple function with which a test case is decorated. Every test function must start with "test" prefix. The Testboy Runner iterates all test functions of a test case and invokes them.
+
+
+
