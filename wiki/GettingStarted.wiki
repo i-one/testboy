@@ -10,7 +10,9 @@ To run Hello World example, follow the steps described below.
 Download the Testboy from the Subversion repository by executing the following command from the command line:
 
 {{{
+
 svn checkout http://testboy.googlecode.com/svn/trunk/ testboy-read-only
+
 }}}
 
 ==Step 2: Create a simple web page==
@@ -18,6 +20,7 @@ svn checkout http://testboy.googlecode.com/svn/trunk/ testboy-read-only
 Create a simple web page containing a JavaScript funciton that needs to be tested.
 
 {{{
+
 <!DOCTYPE html>
 <html>
     <head>
@@ -31,6 +34,7 @@ Create a simple web page containing a JavaScript funciton that needs to be teste
     <body>
     </body>
 </html>
+
 }}}
 
 ==Step 3: Create a utit test using the Testboy API==
@@ -39,6 +43,7 @@ Include the testboy.js in your web page and place the following JavaScript snipp
 body tag, as it shown below.
 
 {{{
+
 <!DOCTYPE html>
 <html>
     <head>
@@ -68,7 +73,9 @@ body tag, as it shown below.
         </script>
     </body>
 </html>
+
 }}}
 
 ==Run the test==
+
 Open the HTML file in a browser. You should see the log output:
