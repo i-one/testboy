@@ -114,7 +114,7 @@ var testboy = testboy || {};
 
 
     /**
-     * Provides functionality for writing colored lines of text in the target element.
+     * Provides functionality for writing colored lines of text in the target HTML element.
      * @namespace testboy
      * @class OutputTarget
      * @constructor OutputTarget
