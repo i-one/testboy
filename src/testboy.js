@@ -766,7 +766,7 @@ var testboy = testboy || {};
          * displayed if the assertion fails.
          */
         assertError: function (fun, args, thisArg, message) {
-            var src = testboy.ref.getSignature("assertNotNull", arguments), 
+            var src = testboy.ref.getSignature("assertError", arguments), 
             thrown = false;
 
             try {
@@ -793,7 +793,7 @@ var testboy = testboy || {};
          * displayed if the assertion fails.
          */
         assertNoError: function () {
-            var src = testboy.ref.getSignature("assertNotNull", arguments), 
+            var src = testboy.ref.getSignature("assertNoError", arguments), 
             thrown = false;
 
             try {
