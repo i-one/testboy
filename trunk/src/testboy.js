@@ -792,7 +792,7 @@ var testboy = testboy || {};
          * @param {string} message Optional. Message for the <code>AssertionError</code> to be 
          * displayed if the assertion fails.
          */
-        assertNoError: function () {
+        assertNoError: function (fun, args, thisArg, message) {
             var src = testboy.ref.getSignature("assertNoError", arguments), 
             thrown = false;
 
