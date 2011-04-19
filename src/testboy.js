@@ -755,12 +755,12 @@ var testboy = {};
             thrown = false;
 
             try {
-                fun.apply(scope, args);
+                fun.apply(thisArg, args);
             } catch (err) {
                 thrown = true;
             }
-            if (thrown) {
-                throw new AssertionError(src, message, "Error was thrown when it was not expected.");
+            if (!thrown) {
+                throw new AssertionError(src, message, "Error wasn't thrown when it was expected.");
             }
         },
 
@@ -782,12 +782,12 @@ var testboy = {};
             thrown = false;
 
             try {
-                fun.apply(scope, args);
+                fun.apply(thisArg, args);
             } catch (err) {
                 thrown = true;
             }
-            if (!thrown) {
-                throw new AssertionError(src, message, "Error wasn't thrown when it was expected.");
+            if (thrown) {
+                throw new AssertionError(src, message, "Error was thrown when it was not expected.");
             }
         }
     };
