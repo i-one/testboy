@@ -619,7 +619,7 @@ var testboy = {};
          * @return {string}
          */
         valueToString: function (value) {
-            return [typeof value, "<", value, ">"].join(SYM_EMPTY);
+            return [typeof value, "<", String(value), ">"].join(SYM_EMPTY);
         }
     };
 
@@ -646,7 +646,7 @@ var testboy = {};
         assertTrue: function (val, message) {
             var src = debug.getSignature("assertTrue", arguments);
             if (val !== true) {
-                throw new testboy.AssertionError(src, message, "Argument is other than " + debug.valueToString(true) + ".");
+                throw new AssertionError(src, message, "Argument is other than " + debug.valueToString(true) + ".");
             }
         },
 
@@ -660,7 +660,7 @@ var testboy = {};
         assertFalse: function (val, message) {
             var src = debug.getSignature("assertFalse", arguments);
             if (val !== false) {
-                throw new testboy.AssertionError(src, message, "Argument is other than " + debug.valueToString(false) + ".");
+                throw new AssertionError(src, message, "Argument is other than " + debug.valueToString(false) + ".");
             }
         },
 
@@ -675,9 +675,9 @@ var testboy = {};
         assertEquals: function (expected, actual, message) {
             var src = debug.getSignature("assertEquals", arguments);
             if (actual !== expected) {
-                throw new testboy.AssertionError(src, message, ["Expected ", 
-                    testboy.ref.valueToString(expected), " instead of ", 
-                    testboy.ref.valueToString(actual), "."].join(SYM_EMPTY));
+                throw new AssertionError(src, message, ["Expected ", 
+                    debug.valueToString(expected), " instead of ", 
+                    debug.valueToString(actual), "."].join(SYM_EMPTY));
             }
         },
 
@@ -691,7 +691,7 @@ var testboy = {};
         assertNotUndefined: function (val, message) {
             var src = debug.getSignature("assertNotUndefined", arguments);
             if (val === UNDEFINED) {
-                throw new testboy.AssertionError(src, message, "Argument is undefined.");
+                throw new AssertionError(src, message, "Argument is undefined.");
             }
         },
 
@@ -705,7 +705,7 @@ var testboy = {};
         assertUndefined: function (val, message) {
             var src = debug.getSignature("assertUndefined", arguments);
             if (val !== UNDEFINED) {
-                throw new testboy.AssertionError(src, message, "Argument is other than undefined.");
+                throw new AssertionError(src, message, "Argument is other than undefined.");
             }
         },
 
@@ -719,7 +719,7 @@ var testboy = {};
         assertNull: function (val, message) {
             var src = debug.getSignature("assertNull", arguments);
             if (val !== null) {
-                throw new testboy.AssertionError(src, message, "Argument is not null.");
+                throw new AssertionError(src, message, "Argument is not null.");
             }
         },
 
@@ -733,7 +733,7 @@ var testboy = {};
         assertNotNull: function (val, message) {
             var src = debug.getSignature("assertNotNull", arguments);
             if (val === null) {
-                throw new testboy.AssertionError(src, message, "Argument is null.");
+                throw new AssertionError(src, message, "Argument is null.");
             }
         },
 
@@ -760,7 +760,7 @@ var testboy = {};
                 thrown = true;
             }
             if (thrown) {
-                throw new testboy.AssertionError(src, message, "Error was thrown when it was not expected.");
+                throw new AssertionError(src, message, "Error was thrown when it was not expected.");
             }
         },
 
@@ -787,7 +787,7 @@ var testboy = {};
                 thrown = true;
             }
             if (!thrown) {
-                throw new testboy.AssertionError(src, message, "Error wasn't thrown when it was expected.");
+                throw new AssertionError(src, message, "Error wasn't thrown when it was expected.");
             }
         }
     };
