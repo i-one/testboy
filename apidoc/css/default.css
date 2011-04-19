@@ -1,0 +1,105 @@
+
+html, body {margin: 0; padding: 0;}
+
+ul {list-style-type: none; padding: 0; margin: 0;}
+
+a:link {color: blue;}
+a:visited {color: blue;}
+
+h1, h2, h3, h4 , h5 {
+    display: block;
+    padding: 0;
+    margin: 0;
+}
+
+div {margin: 0; padding: 0;}
+
+body {
+    font-family: Arial;
+    font-size: 10pt;
+}
+
+#container {
+    position: relative;
+    padding-left: 260px;
+}
+
+#navi { 
+    padding: 20px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    border-right: 1px solid silver;
+    height: 90%;
+}
+
+#navi h3 {
+    margin: 5px 0;
+}
+
+#content {
+    padding: 10px;
+}
+
+#content h3 {
+    font-size: 14pt;
+    margin: 15px 0;
+}
+
+h4 {
+    height: 25px;
+    line-height: 25px;
+    padding-left: 5px;
+    background-color: #ebebeb;
+    margin: 15px 0;
+    font-size: 12pt;
+    color: #00397a;
+}
+
+h5 {
+    margin: 10px 0;
+    font-size: 11pt;
+}
+
+#content .class-def{
+    height: 20px;
+    border-top: 1px solid #a7a7a7;
+    background-color: #ebebeb;
+}
+
+.param-def-block {
+    margin-top: 15px;
+}
+
+.param-def {
+    margin: 1px 0;
+}
+
+.key {
+    display: inline-block;
+    font-size: 11px;
+    padding: 1px 4px;
+    margin: 0 8px 0 0;
+    background-color: #ebebeb;
+}
+
+.sep-line {
+    border-top: 1px dotted silver;
+    height: 10px;
+    margin-top: 10px;
+}
+
+.param {
+    color: #397a00;
+}
+
+.property {
+    color: #00397a;
+}
+
+.class-list li {
+    margin: 3px 0;
+}
+
+
+

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Testboy API Doc</title>
+        <link rel="stylesheet" type="text/css" href="css/default.css?stamp=1303198670.11">
+    </head>
+    <body>
+        <div id="container">
+            <div id="navi">
+                <h3>Objects and Constructors</h3>
+                <ul class="class-list">
+                        <li class=""><a href="testboy.html" title="testboy">testboy</a></li>
+                        <li class=""><a href="testboy.AssertionError.html" title="testboy.AssertionError">testboy.AssertionError</a></li>
+                        <li class=""><a href="testboy.asserts.html" title="testboy.asserts">testboy.asserts</a></li>
+                        <li class=""><a href="testboy.debug.html" title="testboy.debug">testboy.debug</a></li>
+                        <li class=""><a href="testboy.logger.html" title="testboy.logger">testboy.logger</a></li>
+                        <li class=""><a href="testboy.OutputTarget.html" title="testboy.OutputTarget">testboy.OutputTarget</a></li>
+                        <li class=""><a href="testboy.Runner.html" title="testboy.Runner">testboy.Runner</a></li>
+                        <li class=""><a href="testboy.TestCase.html" title="testboy.TestCase">testboy.TestCase</a></li>
+                        <li class="selected"><a href="testboy.TestResult.html" title="testboy.TestResult">testboy.TestResult</a></li>
+                        <li class=""><a href="testboy.TestSuite.html" title="testboy.TestSuite">testboy.TestSuite</a></li>
+                </ul>
+            </div>
+            <div id="content">
+
+                    <h3>testboy.TestResult</h3>
+                    <p class="class-desc">
+                        Stores test results.
+                    </p>
+
+                        <h4>Constructor</h4>
+                        <code>
+
+                            testboy.TestResult()
+                        </code>
+
+                        <div class="sep-line"></div>
+                    
+                        <h4>Properties</h4>
+                        <h5>errorCount</h5>
+                            <code>
+                                number errorCount
+                            </code>
+                            <p>Total number of errors.</p>
+                            <div class="sep-line"></div>
+                        <h5>errors</h5>
+                            <code>
+                                Array errors
+                            </code>
+                            <p>Collection of errors thrown during the tests.</p>
+                            <div class="sep-line"></div>
+                        <h5>testCount</h5>
+                            <code>
+                                number testCount
+                            </code>
+                            <p>Total number of run tests.</p>
+                            <div class="sep-line"></div>
+                    
+                        <h4>Methods</h4>
+                            <h5>addError</h5>
+                            <code>
+                                void addError(err)
+                            </code>
+                            <p>Adds an error to results.</p>
+                                <div class="param-def-block">
+                                    <div class="param-def"><span class="key param">param</span> <code>Error err</code> <span class="pdesc"> Error object.</span></div>
+                                </div>
+                            
+                            <div class="sep-line"></div>
+                            <h5>incrementTestCount</h5>
+                            <code>
+                                void incrementTestCount()
+                            </code>
+                            <p>Increments the number of run tests.</p>
+
+                            <div class="sep-line"></div>
+                            <h5>isFailed</h5>
+                            <code>
+                                boolean isFailed()
+                            </code>
+                            <p>Determines whether the test is failed.</p>
+
+                            <div class="sep-line"></div>
+                            <h5>isSuccessful</h5>
+                            <code>
+                                boolean isSuccessful()
+                            </code>
+                            <p>Determines whether the test is successful.</p>
+
+                            <div class="sep-line"></div>
+                            <h5>reset</h5>
+                            <code>
+                                void reset()
+                            </code>
+                            <p>Resets the results.</p>
+
+                            <div class="sep-line"></div>
+            </div>
+        </div>
+    </body>
+</html>

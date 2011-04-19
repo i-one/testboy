@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Testboy API Doc</title>
+        <link rel="stylesheet" type="text/css" href="css/default.css?stamp=1303198670.11">
+    </head>
+    <body>
+        <div id="container">
+            <div id="navi">
+                <h3>Objects and Constructors</h3>
+                <ul class="class-list">
+                        <li class=""><a href="testboy.html" title="testboy">testboy</a></li>
+                        <li class=""><a href="testboy.AssertionError.html" title="testboy.AssertionError">testboy.AssertionError</a></li>
+                        <li class="selected"><a href="testboy.asserts.html" title="testboy.asserts">testboy.asserts</a></li>
+                        <li class=""><a href="testboy.debug.html" title="testboy.debug">testboy.debug</a></li>
+                        <li class=""><a href="testboy.logger.html" title="testboy.logger">testboy.logger</a></li>
+                        <li class=""><a href="testboy.OutputTarget.html" title="testboy.OutputTarget">testboy.OutputTarget</a></li>
+                        <li class=""><a href="testboy.Runner.html" title="testboy.Runner">testboy.Runner</a></li>
+                        <li class=""><a href="testboy.TestCase.html" title="testboy.TestCase">testboy.TestCase</a></li>
+                        <li class=""><a href="testboy.TestResult.html" title="testboy.TestResult">testboy.TestResult</a></li>
+                        <li class=""><a href="testboy.TestSuite.html" title="testboy.TestSuite">testboy.TestSuite</a></li>
+                </ul>
+            </div>
+            <div id="content">
+
+                    <h3>testboy.asserts</h3>
+                    <p class="class-desc">
+                        Provides assertion methods. Only failed assertions are recorded. These methods can be used 
+directly: <code>testboy.asserts.assertTrue(...)</code>, however they are available in the
+global context: <code>assertTrue(...)</code>.
+                    </p>
+
+                    
+                    
+                        <h4>Methods</h4>
+                            <h5>assertEquals</h5>
+                            <code>
+                                void assertEquals(expected, actual, message)
+                            </code>
+                            <p>Asserts that two values are equal.</p>
+                                <div class="param-def-block">
+                                    <div class="param-def"><span class="key param">param</span> <code>boolean expected</code> <span class="pdesc"> Expected value.</span></div>
+                                    <div class="param-def"><span class="key param">param</span> <code>boolean actual</code> <span class="pdesc"> Value to be checked against <code>expected</code>.</span></div>
+                                    <div class="param-def"><span class="key param">param</span> <code>string message</code> <span class="pdesc"> Optional. Message for the <code>AssertionError</code> to be 
+displayed if the assertion fails.</span></div>
+                                </div>
+                            
+                            <div class="sep-line"></div>
+                            <h5>assertError</h5>
+                            <code>
+                                void assertError(fun, args, thisArg, message)
+                            </code>
+                            <p>Asserts that a function throws an error.</p>
+                                <div class="param-def-block">
+                                    <div class="param-def"><span class="key param">param</span> <code>Function fun</code> <span class="pdesc"> Function to test.</span></div>
+                                    <div class="param-def"><span class="key param">param</span> <code>Object args</code> <span class="pdesc"> The <code>arguments</code> object or an array of arguments to pass 
+in <code>fun</code>.</span></div>
+                                    <div class="param-def"><span class="key param">param</span> <code>Object thisArg</code> <span class="pdesc"> Determines the value of <code>this</code> inside <code>fun</code>. 
+If <code>thisArg</code> is <code>null</code> or <code>undefined</code>, <code>this</code>
+will be the global object. Otherwise, <code>this</code> will be equal to 
+<code>Object(thisArg)</code>.</span></div>
+                                    <div class="param-def"><span class="key param">param</span> <code>string message</code> <span class="pdesc"> Optional. Message for the <code>AssertionError</code> to be 
+displayed if the assertion fails.</span></div>
+                                </div>
+                            
+                            <div class="sep-line"></div>
+                            <h5>assertFalse</h5>
+                            <code>
+                                void assertFalse(val, message)
+                            </code>
+                            <p>Asserts that a value is <code>false</code>.</p>
+                                <div class="param-def-block">
+                                    <div class="param-def"><span class="key param">param</span> <code>boolean val</code> <span class="pdesc"> Value to be checked.</span></div>
+                                    <div class="param-def"><span class="key param">param</span> <code>string message</code> <span class="pdesc"> Optional. Message for the <code>AssertionError</code> to be 
+displayed if the assertion fails.</span></div>
+                                </div>
+                            
+                            <div class="sep-line"></div>
+                            <h5>assertNoError</h5>
+                            <code>
+                                void assertNoError(fun, args, thisArg, message)
+                            </code>
+                            <p>Asserts that a function throws no errors.</p>
+                                <div class="param-def-block">
+                                    <div class="param-def"><span class="key param">param</span> <code>Function fun</code> <span class="pdesc"> Function to test.</span></div>
+                                    <div class="param-def"><span class="key param">param</span> <code>Object args</code> <span class="pdesc"> The <code>arguments</code> object or an array of arguments to pass 
+in <code>fun</code>.</span></div>
+                                    <div class="param-def"><span class="key param">param</span> <code>Object thisArg</code> <span class="pdesc"> Determines the value of <code>this</code> inside <code>fun</code>. 
+If <code>thisArg</code> is <code>null</code> or <code>undefined</code>, <code>this</code>
+will be the global object. Otherwise, <code>this</code> will be equal to 
+<code>Object(thisArg)</code>.</span></div>
+                                    <div class="param-def"><span class="key param">param</span> <code>string message</code> <span class="pdesc"> Optional. Message for the <code>AssertionError</code> to be 
+displayed if the assertion fails.</span></div>
+                                </div>
+                            
+                            <div class="sep-line"></div>
+                            <h5>assertNotNull</h5>
+                            <code>
+                                void assertNotNull(val, message)
+                            </code>
+                            <p>Asserts taht a value is not <code>null</code>.</p>
+                                <div class="param-def-block">
+                                    <div class="param-def"><span class="key param">param</span> <code>boolean val</code> <span class="pdesc"> Value to be checked.</span></div>
+                                    <div class="param-def"><span class="key param">param</span> <code>string message</code> <span class="pdesc"> Optional. Message for the <code>AssertionError</code> to be 
+displayed if the assertion fails.</span></div>
+                                </div>
+                            
+                            <div class="sep-line"></div>
+                            <h5>assertNotUndefined</h5>
+                            <code>
+                                void assertNotUndefined(val, message)
+                            </code>
+                            <p>Asserts that a value is not <code>undefined</code>.</p>
+                                <div class="param-def-block">
+                                    <div class="param-def"><span class="key param">param</span> <code>boolean val</code> <span class="pdesc"> Value to be checked.</span></div>
+                                    <div class="param-def"><span class="key param">param</span> <code>string message</code> <span class="pdesc"> Optional. Message for the <code>AssertionError</code> to be 
+displayed if the assertion fails.</span></div>
+                                </div>
+                            
+                            <div class="sep-line"></div>
+                            <h5>assertNull</h5>
+                            <code>
+                                void assertNull(val, message)
+                            </code>
+                            <p>Asserts that a value is <code>null</code>.</p>
+                                <div class="param-def-block">
+                                    <div class="param-def"><span class="key param">param</span> <code>boolean val</code> <span class="pdesc"> Value to be checked.</span></div>
+                                    <div class="param-def"><span class="key param">param</span> <code>string message</code> <span class="pdesc"> Optional. Message for the <code>AssertionError</code> to be 
+displayed if the assertion fails.</span></div>
+                                </div>
+                            
+                            <div class="sep-line"></div>
+                            <h5>assertTrue</h5>
+                            <code>
+                                void assertTrue(val, message)
+                            </code>
+                            <p>Asserts that a value is <code>true</code>.</p>
+                                <div class="param-def-block">
+                                    <div class="param-def"><span class="key param">param</span> <code>boolean val</code> <span class="pdesc"> Value to be checked.</span></div>
+                                    <div class="param-def"><span class="key param">param</span> <code>string message</code> <span class="pdesc"> Optional. Message for the <code>AssertionError</code> to be 
+displayed if the assertion fails.</span></div>
+                                </div>
+                            
+                            <div class="sep-line"></div>
+                            <h5>assertUndefined</h5>
+                            <code>
+                                void assertUndefined(val, message)
+                            </code>
+                            <p>Asserts that a value is <code>undefined</code>.</p>
+                                <div class="param-def-block">
+                                    <div class="param-def"><span class="key param">param</span> <code>boolean val</code> <span class="pdesc"> Value to be checked.</span></div>
+                                    <div class="param-def"><span class="key param">param</span> <code>string message</code> <span class="pdesc"> Optional. Message for the <code>AssertionError</code> to be 
+displayed if the assertion fails.</span></div>
+                                </div>
+                            
+                            <div class="sep-line"></div>
+            </div>
+        </div>
+    </body>
+</html>
