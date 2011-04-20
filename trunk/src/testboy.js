@@ -175,6 +175,24 @@ var testboy = {};
         }
     };
 
+    /**
+     * Retrieves the source HTML element of the output target.
+     * @method getSrcElement
+     * @return {Element}
+     */
+    OutputTarget.prototype.getSrcElement = function () {
+        return this._src;
+    };
+
+    /**
+     * Sets the source element for the output target.
+     * @method setSrcElement
+     * @param {Element} src Element to set.
+     */
+    OutputTarget.prototype.setSrcElement = function (src) {
+        this._src = src;
+    };
+
 
 
 
@@ -207,6 +225,17 @@ var testboy = {};
      * @method tearDown
      */
     TestCase.prototype.tearDown = function () {};
+
+    /**
+     * This method is invoked before the tests are run.
+     * @method runBefore
+     */
+    TestCase.prototype.runBefore = function () {};
+
+    /**
+     * This method is invoked after the tests are run.
+     */
+    TestCase.prototype.runAfter = function () {};
 
 
 
