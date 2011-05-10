@@ -405,9 +405,14 @@ var testboy = {};
     Runner.prototype._runTestCase = function (tc) {
         var setUp = tc.setUp,
             tearDown = tc.tearDown,
+            runBefore = tc.runBefore,
+            runAfter = tc.runAfter,
             testName;
 
         logger.info("Running test case \"" + tc.name + "\"");
+        if (runBefore) {
+            runBefore();
+        }
         for (testName in tc) {
             if (hasOwnProperty.call(tc, testName) && testName.indexOf("test") == 0) {
                 try {
@@ -425,6 +430,9 @@ var testboy = {};
                 }
                 this._results.incrementTestCount();
             }
+        }
+        if (runAfter) {
+            runAfter();
         }
     };
 
@@ -789,7 +797,7 @@ var testboy = {};
                 thrown = true;
             }
             if (!thrown) {
-                throw new AssertionError(src, message, "Error wasn't thrown when it was expected.");
+                throw new AssertionError(src, message, "Error is not thrown when it is expected.");
             }
         },
 
@@ -816,7 +824,7 @@ var testboy = {};
                 thrown = true;
             }
             if (thrown) {
-                throw new AssertionError(src, message, "Error was thrown when it was not expected.");
+                throw new AssertionError(src, message, "Error is thrown when it is not expected.");
             }
         }
     };
