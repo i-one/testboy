@@ -1,1385 +1,1061 @@
-// Copyright (C) 2011 by Ivan Sialitski
-
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
 
 
-
-
-// testboy global
+/**
+ * Testboy global variable.
+ */
 var testboy = {};
+
 
 (function (testboy) {
 
-    var doc = window.document,
+    'use strict';
 
-        // undefined
-        UNDEFINED,
+    var UNDEF,
 
-        // symbol constants
-        SYM_EMPTY = "",
-        SYM_SPACE = " ",
-        SYM_NEW_LINE = "\n",
-        SYM_SEMICOLON = ":",
+        // string constants
+        STRING_SEMICOLON = ':',
+        STRING_EMPTY = '',
 
-        ZERO_CHARS =  ["0", "0", "00"],
+        // used in addZero() funciton
+        ZERO_ARRAY = ['', '0', '00'],
 
-        // alias
-        hasOwnProperty = Object.prototype.hasOwnProperty,
+        // local aliases
+        win = window,
+        document = win.document,
 
-        globalized = {},
+        Type,
+        TestCase,
+        TestSuite,
+        HtmlConsole,
+        TestResult,
+        ResultCollector,
+        Runner,
+        AssertionError,
+        Mocks,
 
-        parseDiv = doc.createElement("div"),
+        assert,
+        out,
 
-        // Adds one or more zero characters to the beginning of the specified number value
-        // casted to string type.
+        standardTestCase,
+
+        // used for parsing HTML code
+        parseDiv = document.createElement('div'),
+
+        // funciton that does nothing.
+        emptyFn = function () {},
+
+        /**
+         * Retrieves the current time in milliseconds. Shortcut for <code>(new Date).getTime()</code>.
+         * @return number
+         */
+        getCurrentTime = function () {
+            return (new Date()).getTime();
+        },
+
+        /**
+         * Parses HTML string and returns an HTML element.
+         * @param {string} html HTML code to parse.
+         * @return HTMLElement
+         */
+        parseHTML = function (html) {
+            parseDiv.innerHTML = html;
+            return parseDiv.firstChild;
+        },
+
+        /**
+         * Writes the passed HTML string in the current document. Shortcut for 
+         * <code>document.write()</code>. Shouldn't be used after the document is fully parsed by a browser.
+         * @param {string} html HTML string to write in the current document at the parsing time.
+         */
+        writeHTML = function (html) {
+            document.write(html);
+        },
+
+        /**
+         * Casts the passed number to the string type and adds one or more "0" characters to beginning 
+         * of the newly created string.
+         * @param {number} n Number to stringify.
+         * @param {number} c Expected length of the result string.
+         */
         addZero = function (n, c) {
             var num = String(n), add = c - num.length;
             if (add > 0) {
-                return ZERO_CHARS[add] + num;
+                return ZERO_ARRAY[add] + num;
             }
             return n;
         },
 
-        // Appends an element to the body.
-        appendToBody = function (el) {
-            var body = doc.body;
-            if (!body) {
-                throw new Error("Can not append an element to the body because it's null.");
-            }
-            body.appendChild(el);
-        },
-
-        bind = function (fn, obj) {
-            return function () {
-                return fn.apply(obj, arguments);
-            }
+        /**
+         * Throws an error
+         * @param {string} message Error message.
+         */
+        throwError = function (message) {
+            out.error(message);
+            throw new Error(message);
         };
 
 
-
-
     /**
-     * Testboy 
-     * @class testboy
-     * @static
-     * @module testboy
-     */
-    // testboy
-
-    /**
-     * Standard output target.
-     * @static 
-     * @property out
-     * @type testboy.OutputTarget
-     */
-    // testboy.out;
-
-    /**
-     * Standard runner.
-     * @static
-     * @property runner
-     * @type testboy.Runner
-     */
-    // testboy.runner;
-
-    /**
-     * Makes global aliases for all enumerable methods of an object.
-     * @method globalize
-     * @param {Object} obj Object to globalize methods.
-     */
-    testboy.globalize = function (obj) {
-        var methodNames = [], i, name;
-
-        // select names of all enumerable properties that contain functions.
-        for (i in obj) {
-            if (typeof obj[i] == types.FUNCTION) {
-                if (globalized[i]) {
-                    continue;
-                } else if (window[i] !== types.UNDEFINED_VALUE) {
-                    logger.error(["Global variable ", i, " is already defined"].join(SYM_EMPTY));
-                    continue;
-                }
-                methodNames[methodNames.length] = i;
-            }
-        }
-
-        if (!methodNames.length) {
-            return;
-        }
-
-        if (/MSIE/.test(window.navigator.userAgent)) {
-            var script = [];
-            for (i = 0, len = methodNames.length; i < len; i++) {
-                script[script.length] = "var " + methodNames[i] + ";";
-            }
-            window.execScript(script.join(SYM_EMPTY));
-        }
-
-        // globalize methods
-        for (i = 0, len = methodNames.length; i < len; i++) {
-            name = methodNames[i];
-            window[name] = bind(obj[name], obj);
-            globalized[name] = true; // remember names of the globalized methods
-        }
-    };
-
-
-
-
-    /**
-     * Enumeration of standard JavaScript types.
-     * @static
-     * @class types
-     * @namespace testboy
-     */
-    var types = testboy.types = {
-        FUNCTION: typeof function () {},
-        OBJECT: typeof {},
-        BOOLEAN: typeof true,
-        NUMBER: typeof 12,
-        STRING: typeof "abc"
-    };
-    types.UNDEFINED_VALUE;
-    types.UNDEFINED = typeof types.UNDEFINED_VALUE;
-
-
-
-
-    /**
-     * Provides information about the browser.
-     * @static
-     * @class browser
-     * @namespace testboy
-     */
-    var browser = testboy.browser = {};
-
-    /**
-     * Determines that the browser is MSIE.
-     * @property ie
-     * @type boolean
-     */ 
-    browser.ie = false;
-
-    /**
-     * Determines that the browser is Firefox.
-     * @property ff
-     * @type boolean
-     */
-    browser.ff = false;
-
-    /**
-     * Contains the browser name.
-     * @property name
+     * Testboy API version.
      * @type string
      */
-    browser.name = "";
+    testboy.version = "testboy 1.2 homebuilt";
 
-    /**
-     * Contains the browser version. This property is type of string, if you need this information
-     * of number type, you should use <code>testboy.browser.versionNumber</code>.
-     * @property version
-     * @type boolean
-     */
-    browser.version = "";
 
-    /**
-     * The browser version number.
-     * @property versionNumber
-     * @type number
-     */
-    browser.versionNumber = -1;
 
-    /**
-     * Determines whether the browser is supported by the Testboy.
-     * @property isSupported
-     * @type boolean
-     */
-    browser.isSupported = false;
 
-    /**
-     * Determines whether the browser is running in the strict mode.
-     * @property isInStrictMode
-     * @type boolean
-     */
-    browser.isInStrictMode = doc.compatMode == "CSS1Compat";
+    //=========================================================================
+    // testboy.TypeName
 
-    /**
-     * Inits the object's properties.
-     * @private
-     * @method _init
-     */
-    browser._init = function () {
-        var ua = window.navigator.userAgent,
-            match;
-
-        if (match = /(MSIE)\s(\d+.\d+)/.exec(ua)) {
-            this.ie = true;
-        } else if (match = /(Firefox)\/(\S+)/.exec(ua)) {
-            this.ff = true;
-        }
-
-        if (match) {
-            this.name = match[1];
-            this.version = match[2];
-            this.versionNumber = parseFloat(match[2]);
-            this.isSupported = true;
-        }
+    Type = {
+        FUNCTION:   typeof function () {},
+        OBJECT:     typeof {},
+        BOOLEAN:    typeof true,
+        NUMBER:     typeof 12,
+        STRING:     typeof 'str'
     };
-    browser._init();
-
-
-
+    Type.UNDEFINED_VALUE = UNDEF; // constant for the 'undefined' value
+    Type.UNDEFINED = typeof Type.UNDEFINED_VALUE;
 
     /**
-     * Allows to build string comprised from several lines having the same indention.
-     * @class StringBuilder
-     * @namespace testboy
-     * @constructor StringBuilder
-     * @param {string} str First line text.
+     * Retrieves a string containing type and value of the passed argument.
+     * @param {*} value Value to describe.
+     * @return {string} a string consising of the type and value of the passed argument.
      */
-    var StringBuilder = function (str) {
-        if (str) {
-            this._buffer = [str];
-        } else {
-            this._buffer = [];
-        }
-
-        this._arr = [];
-    };
-
-    testboy.StringBuilder = StringBuilder;
-
-    /**
-     * Number of space characters to set indention.
-     * @property indention
-     * @type number
-     */
-    StringBuilder.prototype.indention = 0;
-
-    /**
-     * Appends a line of text to the string.
-     * @method appendLine
-     * @param {string} str Text to append.
-     */
-    StringBuilder.prototype.appendLine = function (str) {
-        var buf = this._buffer,
-            indention = this.indention,
-            arr = this._arr,
-            line;
-
-        if (indention > 0) {
-            arr.length = indention + 1;
-            line = SYM_NEW_LINE + arr.join(" ") + str;
-        } else {
-            line = SYM_NEW_LINE + str;
-        }
-        buf[buf.length] = line;
-    };
-
-    /**
-     * Retirieves the string.
-     * @method toString
-     * @return string
-     */
-    testboy.StringBuilder.prototype.toString = function () {
-        return this._buffer.join(SYM_EMPTY);
+    Type.describe = function (value) {
+        return ['{', typeof value, '} ', value].join(STRING_EMPTY);
     };
 
 
-
-    /**
-     * Writes text in an HTML element.
-     * @class OutputTarget
-     * @namespace testboy
-     * @constructor OutputTarget
-     * @param {Element} el HTML element to be a container for the text.
-     */
-    var OutputTarget = function (el) {
-        /**
-         * The source html element.
-         * @private
-         * @property _src
-         * @type Element
-         */
-        this._src = el || null;
-    };
-
-    testboy.OutputTarget = OutputTarget;
-
-    /**
-     * Creates DOM for an <code>OutputTarget</code> instance.
-     * @private
-     * @method _createDom
-     */
-    OutputTarget.prototype._createDom = function () {
-        this._src = doc.createElement("pre");
-        this._src.style.lineHeight = "18px";
-    };
-
-    /**
-     * Writes a line of text.
-     * @private
-     * @method _writeln
-     * @param {string} text Text to write.
-     * @param {string} color Color of the text.
-     */
-    OutputTarget.prototype._writeln = function (text, color) {
-        var el = doc.createElement("span");
-        el.appendChild(doc.createTextNode(text + "\n"));
-        if (color) {
-            el.style.color = color;
-        }
-        this._src.appendChild(el);
-    };
-
-    /**
-     * Writes a line of text.
-     * @method writeln
-     * @param {string} text Text to write.
-     * @param {string} color Color of the text.
-     */
-    OutputTarget.prototype.writeln = function (text, color) {
-        if (!this._src) {
-            this._createDom();
-            appendToBody(this._src);
-        }
-        this.writeln = this._writeln;
-        this.writeln(text, color);
-    };
-
-    /**
-     * Clears the text container.
-     * @method clear
-     */
-    OutputTarget.prototype.clear = function () {
-        var src = this._src;
-        if (src) {
-            src.innerHTML = "";
-        }
-    };
-
-    /**
-     * Retrieves the source HTML element of the output target.
-     * @method getSrcElement
-     * @return {Element}
-     */
-    OutputTarget.prototype.getSrcElement = function () {
-        return this._src;
-    };
-
-    /**
-     * Sets the source element for the output target.
-     * @method setSrcElement
-     * @param {Element} src Element to set.
-     */
-    OutputTarget.prototype.setSrcElement = function (src) {
-        this._src = src;
-    };
-
-
-
+    //==========================================================================
+    // testboy.TestCase
 
     /**
      * Simple set of tests.
-     * @class TestCase
-     * @namespace testboy
-     * @constructor TestCase
-     * @param {string} name Optional. Name of the test case.
+     * @constructor
+     * @param {string=} name Optonal. Name of a test case.
      */
-    var TestCase = function (name) {
-        /**
-         * Name of the test case.
-         * @property name
-         * @type string
-         */
-        this.name = name;
-
-        /**
-         * Collection of tests.
-         * @property tests
-         * @type Array
-         */
-        this.tests = {};
-
-        /**
-         * Determines whether the test case contains tests.
-         * @property hasTests
-         * @type boolean
-         */
-        this.hasTests = false;
-    };
-
-    testboy.TestCase = TestCase;
-
-    /**
-     * Adds a test to the test case.
-     * @private 
-     * @method _addTest
-     * @param {string} name Name of a test.
-     * @param {Function} fn Test function.
-     */
-    TestCase.prototype._addTest = function (name, fn) {
-        this.tests[name] = fn;
+    TestCase = function (name) {
+        if (name) {
+            this.name = name;
+        }
+        this._tests = {};
+        this.fixture = {};
     };
 
     /**
-     * Adds a test to the test case.
-     * @method test
-     * @param {string} name Name of a test.
-     * @param {Function} fn Test function.
+     * @static
+     * @const 
+     * @type {string}
      */
-    TestCase.prototype.test = function (name, fn) {
-        this.hasTests = true;
-        this.test = this._addTest;
-        this.test(name, fn);
-    };
+    TestCase.DEFAULT_TEST_NAME = 'Test #';
 
     /**
-     * Sets up the fixture. This method is invoked before a test is run.
-     * @method setUp
+     * This counter is used to generate names for test functions. 
+     * @type {number}
+     * @private
      */
-    TestCase.prototype.setUp = function () {};
+    TestCase._testNameCounter = 0;
 
-    /**
-     * Tears down the fixture. This method is invoked after a test is run.
-     * @method tearDown
-     */
-    TestCase.prototype.tearDown = function () {};
-
-    /**
-     * This method is invoked before the tests are run.
-     * @method runBefore
-     */
-    TestCase.prototype.runBefore = function () {};
-
-    /**
-     * This method is invoked after the tests are run.
-     */
-    TestCase.prototype.runAfter = function () {};
-
-
-
-
-    /**
-     * Composite of tests.
-     * @class TestSuite
-     * @namespace testboy
-     * @constructor TestSuite
-     * @param {string} name Name of the test suite.
-     */
-    var TestSuite = function (name) {
-        /**
-         * Name of the test suite.
-         * @property name
-         * @type string
-         */
-        this.name = name;
-        
-        /**
-         * Collection of test cases and test suites.
-         * @private
-         * @property _items
-         * @type Array
-         */
-        this._items = [];
-    };
-
-    testboy.TestSuite = TestSuite;
-
-    /**
-     * Adds a test suite or test case to the suite.
-     * @method add
-     * @param {testboy.TestSuite|testboy.TestCase} to Test case or test suite to add.
-     */
-    TestSuite.prototype.add = function (to) {
-        var items = this._items;
-        items[items.length] = to;
-    };
-
-    /**
-     * Retireves a collection of test cases and test suites.
-     * @method getItems
-     * @return {Array} Collection of test cases and test suites.
-     */
-    TestSuite.prototype.getItems = function () {
-        return this._items;
-    };
-
-    /**
-     * Retrieves the number of test cases or test suites added to this suite.
-     * @method getSize
-     * @return number
-     */
-    TestSuite.prototype.getSize = function () {
-        return this._items.length;
-    };
-
-
-
-
-    /**
-     * Stores test results.
-     * @class TestResult
-     * @namespace testboy
-     * @constructor TestResult
-     */
-    var TestResult = function () {
-        /**
-         * Total number of run tests.
-         * @property testCount
-         * @type number
-         */
-        this.testCount = 0;
+    TestCase.prototype = {
 
         /**
-         * Total number of errors.
-         * @property errorCount
-         * @type number
+         * Map of test functions.
+         * @type {Obejct}
          */
-         this.errorCount = 0;
+        _tests: null,
 
-         /**
-          * Collection of errors thrown during the tests.
-          * @property errors
-          * @type Array
-          */
-         this.errors = [];
+        /**
+         * Contains name of the test case.
+         * @type {string}
+         */
+        name: 'Unnamed Test Case',
 
-         /**
-          * Collection of failures.
-          * @property failures
-          * @type Array
-          */
-         this.failures = [];
+        /**
+         * Length of the test case, contains a number of the tests.
+         * @type {number}
+         */
+        length: 0, // TODO make it private
+
+        /**
+         * Adds a test function to the test case.
+         * @param {string} name Name of a test. Should be a unique string thus a test case shouldn't
+         * contain two test functions with the same name.
+         * @param {Function} fn the function to add.
+         */
+        addTest: function (name, fn) {
+            if (fn === Type.UNDEFINED_VALUE) {
+                fn = name;
+                name = TestCase.DEFAULT_TEST_NAME + ++TestCase._testNameCounter;
+            } else {
+                if (this._tests[name]) {
+                    throw new Error('Test case already contains a test with the given name');
+                }
+            }
+            this._tests[name] = fn;
+            this.length++;
+        },
+
+        /**
+         * Sets up the fixture. Called before a test is run.
+         */
+        setup: emptyFn,
+
+        /**
+         * Sets up the fixture. Called after a test is run.
+         */
+        teardown: emptyFn
     };
 
-    testboy.TestResult = TestResult;
+
+    //==========================================================================
+    // testboy.TestSuite
 
     /**
-     * Resets the results.
-     * @method reset
-     */
-    TestResult.prototype.reset = function () {
-        this.testCount = 0;
-        this.errorCount = 0;
-        this.errors.length = 0;
-    };
-
-    /**
-     * Adds an error to results.
-     * @method addError
-     * @param {Error} err Error object.
-     */
-    TestResult.prototype.addError =  function (err) {
-        var errors = this.errors;
-        errors[errors.length] = err;
-        this.errorCount++;
-    };
-
-    TestResult.prototype.addFailure = function (failure) {
-        var failures = this.failures;
-        failures[failures.length] = failure;
-    };
-
-    /**
-     * Increments the number of run tests.
-     * @method incrementTestCount
-     */
-    TestResult.prototype.incrementTestCount = function () {
-        this.testCount++;
-    };
-    
-    /**
-     * Determines whether the test is failed.
-     * @method isFailed
-     * @return {boolean}
-     */
-    TestResult.prototype.isFailed = function () {
-        return !!this.errorCount;
-    };
- 
-    /**
-     * Determines whether the test is successful.
-     * @method isSuccessful
-     * @return {boolean}
-     */
-    TestResult.prototype.isSuccessful = function () {
-        return !!!this.errorCount;
-    };
-
-
-
-
-    /**
-     * Runs tests.
-     * @class Runner
-     * @namespace testboy
+     * Container for test cases.
      * @constructor
      */
-    var Runner = function () {
+    TestSuite = function (name) {
+        this.name = name;
+        this.items = [];
+    };
+
+    TestSuite.prototype = {
 
         /**
-         * Tests results
+         * Name of the test suite.
+         * @type {string}
+         */
+        name: 'Unnamed Test Suite',
+
+        /**
+         * Array of test suites and test cases.
+         * @type {Array}
+         */
+        items: null,
+
+        /**
+         * Adds a test case or test suite to the test suite.
+         * @param {testboy.TestCase|testboy.TestSuite} caseOrSuite Test case or test suite to add.
+         */
+        add: function (caseOrSuite) {
+            this.items[this.items.length] = caseOrSuite;
+        },
+
+        /**
+         * Retrieves the length of the test suite collection.
+         * @return {number}
+         */
+        getLength: function () {
+            return this.items.length;
+        },
+
+        /**
+         * Determines whether the test suite collection is empty.
+         * @return {boolean}
+         */
+        isEmpty: function () {
+            return this.items.length === 0;
+        }
+    };
+
+
+    //=========================================================================
+    // testboy.HtmlConsole
+
+    /**
+     * Pour implementation of a console component.
+     * @constructor
+     */
+    HtmlConsole = function () {};
+
+    // Console message types.
+    HtmlConsole.FINE =      'fine';
+    HtmlConsole.INFO =      'info';
+    HtmlConsole.WARNING =   'warning';
+    HtmlConsole.ERROR =     'error';
+
+    /**
+     * Mapping message types to css class names.
+     * @static
+     */
+     // TODO: use the constants for the property names???
+    HtmlConsole.messageStyle = {
+        'fine':     'fin',
+        'info':     'inf',
+        'warning':  'war',
+        'error':    'err'
+    };
+
+    HtmlConsole.prototype = {
+
+        /**
+         * HTML markup.
+         * @type {string}
          * @private
-         * @property _results
-         * @type testboy.TestResult
          */
-        this._results = new TestResult();
+        _html: '<div class="tb-console"><pre class="tb-c-ln inf">Testboy Console\n' + testboy.version + '</pre></div>',
 
-        /** 
-         * The root tests collection.
+        /**
+         * Console html element
+         * @type {HTMLElement}
          * @private
-         * @property _masterSuite
-         * @type testboy.TestSuite
          */
-        this._masterSuite = new TestSuite();
-    };
-
-    testboy.Runner = Runner;
-
-    /**
-     * Runs tests of a test case.
-     * @private
-     * @method _runTestCase
-     * @param {testboy.TestCase} tc Test case to run tests.
-     */
-    Runner.prototype._runTestCase = function (tc) {
-        var setUp = tc.setUp,
-            tearDown = tc.tearDown,
-            runBefore = tc.runBefore,
-            runAfter = tc.runAfter,
-            tests = tc.tests,
-            results = this._results,
-            testName,
-            sb;
-
-        logger.info("Running test case \"" + tc.name + "\".");
-
-        if (runBefore) {
-            runBefore.call(tc);
-        }
-        for (testName in tests) {
-            try {
-                if (setUp) {
-                    setUp.call(tc);
-                }
-                tests[testName].call(tc); // run test
-                if (tearDown) {
-                    tearDown.call(tc);
-                }
-                logger.fine("Test \"" + testName + "\" passed.");
-            } catch (err) {
-                if (err instanceof AssertionError) {
-                    results.addFailure(err);
-                    sb = ['Test "', testName, '" failed.', SYM_NEW_LINE, err];
-                } else {
-                    results.addError(err);
-                    sb = ['Error during test "', testName, '"',SYM_NEW_LINE, err];
-                }
-                logger.error(sb.join(SYM_EMPTY));
-            }
-            this._results.incrementTestCount();
-        }
-        if (runAfter) {
-            runAfter.call(tc);
-        }
-    };
-
-    /** 
-     * Runs a test suite.
-     * @private
-     * @method _run
-     * @param {testboy.TestSuite} ts Test suite to run.
-     */
-    Runner.prototype._run = function (ts) {
-        var items = ts.getItems(),
-            len = items.length,
-            item;
-
-            for (var i = 0; i < len; i++) {
-                item = items[i];
-                if (item instanceof TestSuite) {
-                    this._run(item);
-                } else {
-                    this._runTestCase(item);
-                }
-            }
-    };
-
-    /** 
-     * Adds a test case or test suite to the runner.
-     * @method add
-     * @param {testboy.TestSuite|testboy.TestCase} tc Test suite or test case to be added.
-     */
-    Runner.prototype.add = function (tc) {
-        this._masterSuite.add(tc);
-    };
-
-    /**
-     * Runs all tests.
-     * @method run
-     */
-    Runner.prototype.run = function () {
-        var results = this._results,
-            mode = testboy.browser.isInStrictMode ? "the strict mode" : "the quirks mode";
-
-        results.reset();
-
-        if (testboy.browser.isSupported) {
-            logger.info("Running in brwoser: " + testboy.browser.name);
-            logger.info("Browser version: " + testboy.browser.version);
-        } else {
-            logger.warning("Unsupported browser.");
-        }
-        
-        logger.info("The page is processed in " + mode);
-        logger.info("Started");
-
-        this._run(this._masterSuite);
-
-        logger.info(["Done", SYM_NEW_LINE, 
-            "Tests run: ", results.testCount, "; ",
-            "Failures: ", results.failures.length, "; ",
-            "Errors: ", results.errorCount, "; ", 
-            SYM_NEW_LINE,
-            results.isSuccessful() ? "TEST SUCCESSFUL" : "TEST FAILED"
-        ].join(''));
-    };
-
-    /**
-     * Retrieves the size of the master suite.
-     * @method getSize
-     * @return number
-     */
-    Runner.prototype.getSize = function () {
-        return this._masterSuite.getSize();
-    };
-
-    /**
-     * Determines whether the runner is empty.
-     * @method isEmpty
-     * @return boolean
-     */
-    Runner.prototype.isEmpty = function () {
-        return this._masterSuite.getSize() == 0;
-    };
-
-
-
-
-    /**
-     * <code>testboy.AssertionError</code> is thrown when an assertion fails.
-     * @class AssertionError
-     * @namespace testboy
-     * @constructor AssertionError
-     * @param {string} src Signature of an assertion method that failed (see getSignature()).
-     * @param {string} message Error message.
-     * @param {string} cause Detail description of a cause of an error.
-     */
-    var AssertionError = function (src, message, cause) {
-        /**
-         * Signature of an assertion method that failed.
-         * @readonly
-         * @property src
-         * @type string
-         */
-        this.src = src;
+        _srcElement: null,
 
         /**
-         * Error message.
-         * @readonly
-         * @property message
-         * @type string
+         * Comparator function for an object's property names.
+         * @private
          */
-        this.message = message;
-
-        /**
-         * Detail description of a cause of an error.
-         * @readonly
-         * @property cause
-         * @type string
-         */
-        this.cause = cause;
-    };
-
-    testboy.AssertionError = AssertionError;
-
-    /** 
-     * Name of the error type.
-     * @property name
-     * @type string
-     */
-    AssertionError.prototype.name = "testboy.AssertionError";
-
-    /**
-     * Retrieves a string expression of the error.
-     * @method toString
-     * @override
-     * @return {string}
-     */
-    AssertionError.prototype.toString = function () {
-        return [this.name, SYM_SEMICOLON, SYM_SPACE, this.message, "\n",
-            this.cause, "\nat ", this.src].join(SYM_EMPTY);
-    };
-
-
-    var HtmlConsole = function (el) {
-        this._src_ = el || null;
-    };
-
-    testboy.HtmlConsole = HtmlConsole;
-
-    HtmlConsole.styles = {
-        "fine": "green",
-        "info": "#5f5f5f",
-        "warn": "orange",
-        "error": "red"
-    };
-
-    HtmlConsole.prototype.isRendered = false;
-
-    HtmlConsole.prototype.createDom = function () {
-        parseDiv.innerHTML = '<pre style="background-color: white; line-height: 18px;"></pre>';
-        this._src_ = parseDiv.firstChild;
-    };
-
-    HtmlConsole.prototype.render = function () {
-        if (!this._src_) {
-            this.createDom();
-        }
-        appendToBody(this._src_);
-        this.isRendered = true;
-    };
-
-    HtmlConsole.prototype._log = function (key, message) {
-        parseDiv.innerHTML = ['<span style="color:', HtmlConsole.styles[key], '">', message, 
-            '</span>'].join(SYM_EMPTY);
-        this._src_.appendChild(parseDiv.firstChild);
-        this._src_.appendChild(doc.createTextNode(SYM_NEW_LINE));
-    };
-
-    HtmlConsole.prototype.log = function (key, message) {
-        if (!this.isRendered) {
-            this.render();
-        }
-        this.log = this._log;
-        this.log(key, message);
-    };
-
-
-
-
-    /**
-     * Adapts the native browser console to support the loge target interface.
-     * @static
-     * @class browserConsole
-     * @namesapce testboy
-     */
-    var browserConsole = testboy.browserConsole = {};
-
-    /**
-     * The native browser console.
-     * @private
-     * @property _console
-     * @type Object
-     */
-    browserConsole._console = null;
-
-    /**
-     * Determines whether the console is available for logging.
-     * @property isAvailable
-     * @type boolean
-     */
-    browserConsole.isAvailable = false;
-
-    /**
-     * Logs a message of the specified type into the console.
-     * @method log
-     * @param {string} key Log message key: "fine", "info", "warn" or "error".
-     * @param {string} message Message to log.
-     */
-    browserConsole.log = function (key, message) {
-        switch (key) {
-            case "error": browserConsole._console.error(message); break;
-            case "fine": browserConsole._console.info(message); break;
-            case "warn": browserConsole._console.warn(message); break;
-            case "info": browserConsole._console.info(message); break;
-        }
-    };
-
-    // init browserConsole
-    if (window.console) {
-        browserConsole._console = window.console;
-        browserConsole.isAvailable = true;
-    }
-
-
-
-
-    /**
-     * Testboy logger. Logs messages into the standard output target.
-     * @class logger
-     * @namespace testboy
-     * @static
-     */
-    var logger = testboy.logger = {};
-
-    logger._targets = [];
-
-    /**
-     * Determines whether the logger is enabled.
-     * @property enabled
-     * @type boolean
-     */
-    logger.enabled = true;
-
-    logger.addTarget = function (target) {
-        var targets = logger._targets;
-        targets[targets.length] = target;
-    };
-
-    logger.log = function (key, message) {
-        if (!this.enabled) {
-            return;
-        }
-
-        var targets = logger._targets,
-            len = targets.length,
-            date = new Date(),
-            sb = [
-                addZero(date.getHours(), 2), SYM_SEMICOLON,
-                addZero(date.getMinutes(), 2), SYM_SEMICOLON,
-                addZero(date.getSeconds(), 2), SYM_SEMICOLON,
-                addZero(date.getMilliseconds(), 3), SYM_SPACE,
-                "[", key, "]", SYM_SPACE,
-                message
-            ].join(SYM_EMPTY);
-
-        for (var i = 0; i < len; i++) {
-            targets[i].log(key, sb);
-        }
-    };
-
-    logger.info = function (message) {
-        logger.log("info", message);
-    };
-
-    logger.warn = function (message) {
-        logger.log("warn", message);
-    };
-
-    logger.error = function (message) {
-        logger.log("error", message);
-    };
-
-    logger.fine = function (message) {
-        logger.log("fine", message);
-    };
-
-
-
-    /**
-     * Provides methods for converting standard JavaScript values to human-readable strings.
-     * @class debug
-     * @namespace testboy
-     * @static
-     */
-    var debug = testboy.debug = {
-
-        _extractFuncitonName: function (fn) {
-            var toString = Function.prototype.toString,
-                re = /function\s+(\w+)\(/;
-            var match = re.exec(toString.call(fn));
-            if (match) {
-                return match[1];
+        _comparePropertyNames: function (a, b) {
+            if (a > b) {
+                return -1;
+            } else if (b > a) {
+                return 1;
             } else {
-                return "[anonymous]";
+                return 0;
             }
         },
 
         /**
-         * Retrieves a string containing a function name and its arguments types.
-         * @static
-         * @method getSignature
-         * @param {ArrayLike} args Collection of the function arguments.
-         * @param {string} name Optional. Function name.
-         * @return {string}
+         * @private
          */
-        getSignature: function (args, name) {
-            var name = name || this._extractFuncitonName(args.callee),
-                valueToString = this.valueToString,
-                arr = [name, "("],
-                i = 0,
-                len = args.length - 1,
-                type;
-
-            for (; i < len; i++) {
-                type = typeof args[i];
-                arr[arr.length] = valueToString(args[i]);
-                arr[arr.length] = ", ";
-            }
-            type = typeof args[i];
-            arr[arr.length] = valueToString(args[i]);
-            arr[arr.length] = ")";
-            return arr.join(SYM_EMPTY);
-        },
-
-        /**
-         * Retrieves string containing a value and the value type of the pattern: <code>type&lt;value&gt;</code>.
-         * @param {*} value Value to convert in readable string.
-         * @return {string}
-         */
-        valueToString: function (value) {
-            var type = typeof value,
-                val = value;
-
-            if (type == types.FUNCTION) {
-                val = "[function]";
-            } else if (type == types.OBJECT) {
-                val = "[object]";
-            } else if (type == types.STRING) {
-                val = "\"" + val + "\"";
-            } else {
-                val = String(value);
-            }
-            return ["{", type, "}", val].join(SYM_EMPTY);
-        },
-
-        /**
-         * Retrieves a string describing properties of the passed object. Only enumerable properties
-         * are included.
-         * @method printObject
-         * @param {Object} obj Object to print properties.
-         * @param {Object} comment Optional. Short message describing the object.
-         */
-         // dir()
-        printObject: function (o, comment) {
-            var sb = new testboy.StringBuilder(comment),
+        _getSortedObjectPropertyNameArray: function (obj) {
+            var methodNames = [],
+                methodNamesLength = methodNames.length,
+                propertyNames = [],
+                propertyNamesLength = propertyNames.length,
                 propertyName;
-            
-            sb.indention = 4;
-            for (propertyName in o) {
-                sb.appendLine(propertyName + ": " + debug.valueToString(o[propertyName]));
+
+            for (propertyName in obj) {
+                if (obj.hasOwnProperty(propertyName)) {
+                    if (typeof obj[propertyName] === Type.FUNCTION) {
+                        methodNames[methodNamesLength++] = propertyName;
+                    } else {
+                        propertyNames[propertyNamesLength++] = propertyName;
+                    }
+                }
             }
-            return sb.toString();
+            methodNames.sort(this._comparePropertyNames);
+            propertyNames.sort(this._comparePropertyNames);
+            return propertyNames.concat(methodNames);
+        },
+
+        /**
+         * Logs a message of the given type.
+         * @private
+         */
+        _log: function (type, message) {
+            if (arguments.length === 1) {
+                // if only one argument passed, assume this is an info message
+                message = type;
+                type = HtmlConsole.INFO;
+            }
+            var messageHTML = ['<pre class="tb-c-ln ', HtmlConsole.messageStyle[type], '">', message, '</pre>'].join(STRING_EMPTY);
+            this._srcElement.appendChild(parseHTML(messageHTML));
+        },
+
+        /**
+         * Logs a message of the specified type. The current implementation supports 4 message 
+         * types: FINE, INFO, WARNING and ERROR. Static constants of this constructor can be used
+         * to specify the type. They are "fine", "info", "warning" and "error" strings respectively.
+         * If the source HTML element isn't created yet, the method will create it and render at the 
+         * end of the BODY element.
+         * 
+         * @param {string} type Type of a message.
+         * @param {string} type Message to log.
+         */
+        log: function (type, message) {
+            if (!this._srcElement) {
+                // ofourse, the console is not rendered yet
+                this._srcElement = parseHTML(this._html); // create the source element.
+                if (document.body) {
+                    // if the body html element is available, render the console in there.
+                    document.body.appendChild(this._srcElement);
+                }
+            }
+            // the code above will be executed only once.
+            this.log = this._log;
+            this.log(type, message);
+        },
+
+        /**
+         * Logs an error message.
+         * @param {string} message Error message to log.
+         */
+        error: function (message) {
+            this.log(HtmlConsole.ERROR, message);
+        },
+
+        /**
+         * Logs a warning message.
+         * @param {string} message Warning message to log.
+         */
+        warning: function (message) {
+            this.log(HtmlConsole.WARNING, message);
+        },
+
+        /**
+         * Logs an info message.
+         * @param {string} message Info message to log.
+         */
+        info: function (message) {
+            this.log(HtmlConsole.INFO, message);
+        },
+
+        /**
+         * Lists enumerable properties of the passed object.
+         * @param {Object} obj Object to list properties.
+         * @param {boolean} hidePseudoPrivate Optional. Determines whether to hide properties 
+         * that start with an underscore character. All properties are listed, if unspecified.
+         * @param {string} comment Optional. User comment a about the object.
+         */
+        dir: function (obj, hidePseudoPrivate, comment) {
+            if (typeof obj === Type.FUNCTION) {
+                obj = obj.prototype;
+            }
+
+            var sb = [],    // string builder array
+                sbLen = sb.length,  // its length
+                properties = this._getSortedObjectPropertyNameArray(obj),   // sorded array of propery names
+                propsLen = properties.length,   // length of the array of property names
+                pn,     // property name
+                value,  // property value
+                i;  // loop counter
+
+            sb[sbLen++] = '>>> dir(): ';
+
+            if (comment) {
+                sb[sbLen++] = comment;
+            }
+
+            for (i = 0; i < propsLen; i++) {
+                pn = properties[i];
+                if (hidePseudoPrivate) {
+                    if (pn.indexOf('_') === 0) {
+                        continue;
+                    }
+                }
+                sb[sbLen++] = '\n    <span class="tb-pn">';
+                sb[sbLen++] = pn;
+                sb[sbLen++] = '</span>: ';
+                value = obj[pn];
+                sb[sbLen++] = typeof value === 'function' ? '[function]' : value;
+            }
+            this.log(sb.join(''));
+        },
+
+        /**
+         * Clears content of the console by removing all children nodes of the source
+         * element.
+         */
+        clear: function () {
+            this._srcElement.innerHTML = '';
         }
+    };
+
+
+    //==========================================================================
+    // testboy.TestResult
+
+    /**
+     * Contains information about a result of a single test.
+     * @constructor
+     * @param {string} testCaseName Name of a test case.
+     * @param {string} testName Name of a test.
+     * @param {boolean} passed Sets whether a test is passed.
+     * @param {Error} errorObject Optional. Error object if a test is failed.
+     */
+    TestResult = function (testCaseName, testName, passed, errorObject) {
+
+        /**
+         * Name of a test case.
+         * @type stirng
+         */
+        this.testCaseName = testCaseName;
+
+        /**
+         * Name of a test.
+         * @type string
+         */
+        this.testName = testName;
+
+        /**
+         * Determines whether a test is passed.
+         * @type boolean
+         */
+        this.isPassed = passed;
+
+        /**
+         * Determines whether a test is failed.
+         * @type boolean
+         */
+        this.isFailed = !passed;
+
+        /**
+         * Error object, in case a test is failed.
+         * type Error
+         */
+        this.error = errorObject || null;
+
+        /**
+         * Time (milliseconds) when the test result is retrieved.
+         * @type {number}
+         */
+        this.timeStamp = getCurrentTime();
     };
 
 
 
 
     /**
-     * Provides assertion methods. Only failed assertions are recorded. These methods can be used 
-     * directly: <code>testboy.asserts.assertTrue(...)</code>, however they are available in the
-     * global context: <code>assertTrue(...)</code>.
-     * @namespace testboy
-     * @static
-     * @class asserts
+     * Collects/logs results during testing.
+     * @constructor
      */
-    testboy.asserts = {
+    ResultCollector = function () {
+        this.startTime = 0;
+        this.endTime = 0;
+        this.results = [];
+        this.failures = 0;
+    };
+
+    ResultCollector.prototype = {
 
         /**
-         * Asserts that a value is <code>true</code>.
-         * @method assertTrue
-         * @param {boolean} val Value to be checked. 
-         * @param {string} message Optional. Message for the <code>AssertionError</code> to be 
-         * displayed if the assertion fails.
+         * Time when testing is started.
+         * @type {number}
          */
-        assertTrue: function (val, message) {
-            var src = debug.getSignature(arguments, "assertTrue");
-            if (val !== true) {
-                throw new AssertionError(src, message, "Argument is other than " + debug.valueToString(true));
+        startTime: 0,
+
+        /**
+         * Time when testing is finished.
+         * @type {number}
+         */
+        endTime: 0,
+
+        /**
+         * Array of test results.
+         * @type {Array}
+         */
+        results: null,
+
+        /**
+         * Number of failed tests.
+         * @type {number}
+         */
+        failures: 0,
+
+        /**
+         * Name of a test case that is being run.
+         * @type {string}
+         */
+        _currentTestCaseName: '',
+
+        /**
+         * Sets/determines whether test events are logged.
+         * @type {boolean}
+         */
+        enableLogging: true,
+
+        /**
+         * Logs a test event into the console.
+         * @private
+         * @param {string} type Optional. Log message type (see testboy.HtmlConsole constants);
+         * @param {string} message Message to log
+         */
+        _log: function (type, message) {
+            if (!this.enableLogging) {
+                return;
+            }
+
+            if (arguments.length === 1) {
+                message = type;
+                type = HtmlConsole.INFO;
+            }
+
+            var date = new Date(),
+                logMessage = [
+                    addZero(date.getHours(), 2), STRING_SEMICOLON,
+                    addZero(date.getMinutes(), 2), STRING_SEMICOLON,
+                    addZero(date.getSeconds(), 2), STRING_SEMICOLON,
+                    addZero(date.getMilliseconds(), 3), ' [', type, '] ',
+                    message
+                ].join(STRING_EMPTY);
+
+            out.log(type, logMessage);
+        },
+
+        /**
+         * Logs a test result.
+         * @private
+         * @param {testboy.TestResult} testResult Test result to log.
+         */
+        _logTestResult: function (testResult) {
+            if (testResult.isPassed) {
+                this._log(HtmlConsole.FINE, ['Test "', testResult.testName,
+                    '" passed.'].join(STRING_EMPTY));
+            } else {
+                this._log(HtmlConsole.ERROR, ['Test "', testResult.testName,
+                    '" failed.\n', testResult.error].join(STRING_EMPTY));
             }
         },
 
         /**
-         * Asserts that a value is <code>false</code>.
-         * @method assertFalse
-         * @param {boolean} val Value to be checked. 
-         * @param {string} message Optional. Message for the <code>AssertionError</code> to be 
-         * displayed if the assertion fails.
+         * @private
          */
-        assertFalse: function (val, message) {
-            var src = debug.getSignature(arguments, "assertFalse");
-            if (val !== false) {
-                throw new AssertionError(src, message, "Argument is other than " + debug.valueToString(false));
+        _logSummary: function () {
+            var msg;
+            if (!this.isFailed()) {
+                msg = 'SUITE SUCCESSFULL';
+            } else {
+                msg = 'SUITE FAILED';
+            }
+            this._log([msg, '\nTests run: ', this.results.length, ', failed: ', this.failures]
+                .join(STRING_EMPTY));
+        },
+
+        /**
+         * Adds a test result to the collection.
+         * @private
+         * @param {testboy.TestResult} testResult Test result to add.
+         */
+        _addResult: function (testResult) {
+            var results = this.results;
+            results[results.length] = testResult;
+            this._logTestResult(testResult);
+        },
+
+        /**
+         * Determines whether the whole test suite is failed.
+         * @return {boolean}
+         */
+        isFailed: function () {
+            return this.failures > 0;
+        },
+
+        /**
+         * Resets the state to the default. Forgives all results.
+         */
+        resetState: function () {
+            this.startTime = 0;
+            this.endTime = 0;
+            this.results.length = 0;
+            this.failures = 0;
+        },
+
+        /**
+         * Invoked when the runner starts running tests.
+         */
+        onStart: function () {
+            this.startTime = (new Date()).getTime();
+            this._log("Started");
+        },
+
+        /**
+         * Invoked when the runner stops.
+         */
+        onFinish: function () {
+            this.endTime = (new Date()).getTime();
+            this._logSummary();
+            this._log('Done');
+        },
+
+        /**
+         * Invoked when a test case is started.
+         * @param {string} name Name of a test case.
+         */
+        onTestCaseStarted: function (name) {
+            this._currentTestCaseName = name;
+            this._log('Running test case "' + name + '"');
+        },
+
+        /**
+         * Invoked when a test is successfully passed.
+         * @param {string} testName Name of a test.
+         */
+        onTestPassed: function (testName) {
+            this._addResult(new TestResult(this._currentTestCaseName, testName, true));
+        },
+
+        /**
+         * Invoked when a test is failed.
+         * @param {string} testName Name of a test.
+         * @param {Error} err Error object.
+         */
+        onTestFailed: function (testName, err) {
+            this._addResult(new TestResult(this._currentTestCaseName, testName, false, err));
+            this.failures++;
+        }
+    };
+
+
+    //==========================================================================
+    // testboy.Runner
+
+    /**
+     * Runs tests. Uses a <code>TestSuite</code> instance to store test cases and a 
+     * <code>ResultCollector</code> to log test information.
+     * @constructor
+     */
+    Runner = function () {
+        this._masterSuite = new TestSuite('master suite');
+        this.resultCollector = new ResultCollector();
+    };
+
+    Runner.prototype = {
+
+        /**
+         * Master suite to keep test cases.
+         * @type {testboy.TestSuite}
+         * @private
+         */
+        _masterSuite: null,
+
+        /**
+         * Instance of <code>testboy.ResultCollector</code> to gather test information.
+         * @type testboy.ResultCollector
+         */
+        resultCollector: null,
+
+        /**
+         * Runs a test case.
+         * @private
+         * @param {testboy.TestCase} testCase Test case to run.
+         */
+        _runTestCase: function (testCase) {
+            var tests = testCase._tests,
+                setup = testCase.setup,
+                teardown = testCase.teardown,
+                rc = this.resultCollector,
+                testFn,
+                testName;
+
+            rc.onTestCaseStarted(testCase.name);
+
+            if (testCase.length === 0) {
+                // the test case has no registered tests
+                // attempt to find test methods in the old way
+
+                for (testName in testCase) {
+                    if (testCase.hasOwnProperty(testName)) {
+                        if (testName.indexOf('test') === 0) {
+                            // found a test method
+                            testFn = testCase[testName];
+                            try {
+                                setup.call(testCase);
+                                testFn.call(testCase, assert);
+                                teardown.call(testCase);
+                                rc.onTestPassed(testName);
+                            } catch (ex) {
+                                rc.onTestFailed(testName, ex);
+                            }
+                        }
+                    }
+                }
+            } else {
+                for (testName in tests) {
+                    if (tests.hasOwnProperty(testName)) {
+                        testFn = tests[testName];
+                        try {
+                            setup.call(testCase);
+                            testFn.call(testCase, assert);
+                            teardown.call(testCase);
+                            rc.onTestPassed(testName);
+                        } catch (ex2) {
+                            rc.onTestFailed(testName, ex2);
+                        }
+                    }
+                }
             }
         },
 
         /**
-         * Asserts that two values are equal.
-         * @method assertEquals
-         * @param {boolean} expected Expected value. 
-         * @param {boolean} actual Value to be checked against <code>expected</code>. 
-         * @param {string} message Optional. Message for the <code>AssertionError</code> to be 
-         * displayed if the assertion fails.
+         * Runs tests of the passed suite recursively.
+         * @private
+         * @param {testboy.TestSuite} suite Suite to run.
          */
-        assertEquals: function (expected, actual, message) {
-            var src = debug.getSignature(arguments, "assertEquals");
+        _run: function (suite) {
+            var items = suite.items,
+                item,
+                i,
+                len;
+
+            for (i = 0, len = items.length; i < len; i++) {
+                item = items[i];
+                if (item instanceof TestCase) {
+                    this._runTestCase(item);
+                } else {
+                    this._run(item);
+                }
+            }
+        },
+
+        /**
+         * Retrieves the master suite that contains all test cases for this runner.
+         * @return {testboy.TestSuite}
+         */
+        getMasterSuite: function () {
+            return this._masterSuite;
+        },
+
+        /**
+         * Adds a test suite or test case to the runner.
+         * @param {testboy.TestSuite|testboy.TestCase} caseOrSuite Test case or test suite to add.
+         */
+        add: function (caseOrSuite) {
+            this._masterSuite.add(caseOrSuite);
+        },
+
+        /**
+         * Runs all tests added to the runner.
+         */
+        run: function () {
+            var rc = this.resultCollector;
+            rc.onStart();
+            this._run(this._masterSuite);
+            rc.onFinish();
+        }
+    };
+
+
+    //==========================================================================
+    // testboy.AssertionError
+
+    /**
+     * Contains assertion error details.
+     * @constructor
+     * @param {string} message
+     * @param {string} cause
+     * @param {string} srcFn
+     */
+    AssertionError = function (message, cause, srcFn) {
+        this.message = message;
+        this.cause = cause;
+        this.funcName = srcFn || '[anonymous]()';
+    };
+
+    AssertionError.prototype = {
+
+        /**
+         * Name of the error type.
+         * @type string
+         */
+        name: 'testboy.AssertionError',
+
+        toString: function () {
+            return [this.name, ': ', this.message, '\n',
+                this.cause, '\nat ', this.funcName].join(STRING_EMPTY);
+        }
+    };
+
+
+    //=========================================================================
+    // testboy.assert
+
+
+    /**
+     * Object contains a set of assertion methods.
+     */
+    assert = {
+
+        /**
+         * Tests whether an object has a property with the specified name.
+         */
+        hasProperty: function (obj, propertyName, message) {
+            if (obj[propertyName] === Type.UNDEFINED_VALUE) {
+                throw new AssertionError(message, "Object doesn't have '" + propertyName
+                    + "' method or property", "testboy.assert.hasProperty()");
+            }
+        },
+
+        is: function (actual, expected, message) {
             if (actual !== expected) {
-                throw new AssertionError(src, message, ["Expected ", 
-                    debug.valueToString(expected), " instead of ", 
-                    debug.valueToString(actual), "."].join(SYM_EMPTY));
+                throw new AssertionError(message, "Expected value " + Type.describe(expected)
+                    + " instead of " + Type.describe(actual), "testboy.assert.is()");
+            }
+        },
+
+        isTrue: function (value, message) {
+            if (value !== true) {
+                throw new AssertionError(message, "Passed value is not " + Type.describe(true),
+                    "testboy.assert.isTrue()");
+            }
+        },
+
+        isFalse: function (value, message) {
+            if (value !== false) {
+                throw new AssertionError(message, "Passed value is not " + Type.describe(false),
+                    "testboy.assert.isFalse()");
             }
         },
 
         /**
-         * Asserts that a value is not <code>undefined</code>.
-         * @method assertNotUndefined
-         * @param {boolean} val Value to be checked. 
-         * @param {string} message Optional. Message for the <code>AssertionError</code> to be 
-         * displayed if the assertion fails.
+         * Asserts that the passed value is other than null or undefined.
          */
-        assertNotUndefined: function (val, message) {
-            var src = debug.getSignature(arguments, "assertNotUndefined");
-            if (val === UNDEFINED) {
-                throw new AssertionError(src, message, "Argument is undefined");
+        isSomething: function (value, message) {
+            if (value === Type.UNDEFINED_VALUE || value === null) {
+                throw new AssertionError(message, "Passed value is " + Type.describe(value),
+                    "testboy.assert.isSomething()");
             }
         },
 
         /**
-         * Asserts that a value is <code>undefined</code>.
-         * @method assertUndefined
-         * @param {boolean} val Value to be checked. 
-         * @param {string} message Optional. Message for the <code>AssertionError</code> to be 
-         * displayed if the assertion fails.
+         * Asserts that the passed value is not undefined.
          */
-        assertUndefined: function (val, message) {
-            var src = debug.getSignature(arguments, "assertUndefined");
-            if (val !== UNDEFINED) {
-                throw new AssertionError(src, message, "Argument is other than undefined");
+        isNotUndefined: function (value, message) {
+            if (value === Type.UNDEFINED_VALUE) {
+                throw new AssertionError(message, "Passed value is " + Type.describe(value),
+                    "testboy.assert.isNotUndefined()");
             }
         },
 
-        /**
-         * Asserts that a value is <code>null</code>.
-         * @method assertNull
-         * @param {boolean} val Value to be checked. 
-         * @param {string} message Optional. Message for the <code>AssertionError</code> to be 
-         * displayed if the assertion fails.
-         */
-        assertNull: function (val, message) {
-            var src = debug.getSignature(arguments, "assertNull");
-            if (val !== null) {
-                throw new AssertionError(src, message, "Argument is not null");
+        isUndefined: function (value, message) {
+            if (value !== Type.UNDEFINED_VALUE) {
+                throw new AssertionError(message, "Passed value is other than "
+                    + Type.describe(Type.UNDEFINED_VALUE), "testboy.assert.isUndefined()");
             }
         },
 
-        /**
-         * Asserts taht a value is not <code>null</code>.
-         * @method assertNotNull
-         * @param {boolean} val Value to be checked. 
-         * @param {string} message Optional. Message for the <code>AssertionError</code> to be 
-         * displayed if the assertion fails.
-         */
-        assertNotNull: function (val, message) {
-            var src = debug.getSignature(arguments, "assertNotNull");
-            if (val === null) {
-                throw new AssertionError(src, message, "Argument is null");
+        isNull: function (value, message) {
+            if (value !== null) {
+                throw new AssertionError(message, "Passed value is other than "
+                    + Type.describe(null), "testboy.assert.isNull()");
             }
         },
 
-        /**
-         * Asserts that a function throws an error.
-         * @method assertError
-         * @param {Function} fun Function to test.
-         * @param {Object} args The <code>arguments</code> object or an array of arguments to pass 
-         * in <code>fun</code>.
-         * @param {Object} thisArg Determines the value of <code>this</code> inside <code>fun</code>. 
-         * If <code>thisArg</code> is <code>null</code> or <code>undefined</code>, <code>this</code>
-         * will be the global object. Otherwise, <code>this</code> will be equal to 
-         * <code>Object(thisArg)</code>.
-         * @param {string} message Optional. Message for the <code>AssertionError</code> to be 
-         * displayed if the assertion fails.
-         */
-        assertError: function (fun, args, thisArg, message) {
-            var src = debug.getSignature(arguments, "assertError"), 
-            thrown = false;
+        isNotNull: function (value, message) {
+            if (value === null) {
+                throw new AssertionError(message, "Passed value is " + Type.describe(value),
+                    "testboy.assert.isNotNull()");
+            }
+        },
 
+        isTypeOf: function (value, typeName, message) {
+            if (typeof value !== typeName) {
+                throw new AssertionError(message, "Passed value is not of " + typeName + "type",
+                    "testboy.assert.isTypeOf()");
+            }
+        },
+
+        isInstanceOf: function (value, ctor, message) {
+            if (!value instanceof ctor) {
+                throw new AssertionError(message, "Passed value is not an instance of the specified constructor",
+                    "testboy.assert.isInstanceOf()");
+            }
+        },
+
+        throwsNoError: function (fn, message) {
+            var thrown = false,
+                error;
             try {
-                fun.apply(thisArg, args);
-            } catch (err) {
-                thrown = true;
-            }
-            if (!thrown) {
-                throw new AssertionError(src, message, "Error is not thrown when it is expected");
-            }
-        },
-
-        /**
-         * Asserts that a function throws no errors.
-         * @method assertNoError
-         * @param {Function} fun Function to test.
-         * @param {Object} args The <code>arguments</code> object or an array of arguments to pass 
-         * in <code>fun</code>.
-         * @param {Object} thisArg Determines the value of <code>this</code> inside <code>fun</code>. 
-         * If <code>thisArg</code> is <code>null</code> or <code>undefined</code>, <code>this</code>
-         * will be the global object. Otherwise, <code>this</code> will be equal to 
-         * <code>Object(thisArg)</code>.
-         * @param {string} message Optional. Message for the <code>AssertionError</code> to be 
-         * displayed if the assertion fails.
-         */
-        assertNoError: function (fun, args, thisArg, message) {
-            var src = debug.getSignature(arguments, "assertNoError"),
-            thrown = false;
-
-            try {
-                fun.apply(thisArg, args);
-            } catch (err) {
+                fn();
+            } catch (e) {
+                error = e;
                 thrown = true;
             }
             if (thrown) {
-                throw new AssertionError(src, message, "Error is thrown when it is not expected");
+                throw new AssertionError(message, "Function threw an error\n" + error,
+                    "testboy.assert.throwsNoError()");
             }
         },
 
-        assertInstanceOf: function (obj, ctor, message) {
-            var src = debug.getSignature(arguments, "assertInstanceOf");
-            if (!(obj instanceof ctor)) {
-                throw new AssertionError(src, message, "Object is not instance of the specified constructor");
+        throwsError: function (fn, message) {
+            var thrown = false;
+            try {
+                fn();
+            } catch (e) {
+                thrown = true;
+            }
+            if (!thrown) {
+                throw new AssertionError(message, "Function didn't throw an error when it was expected",
+                    "testboy.assert.throwsError()");
             }
         }
     };
 
 
-    // standard runner
-    var runner = testboy.runner = new Runner();
+    //==========================================================================
+    // testboy.Mocks
 
-    // standard output target
-    var out = testboy.out = new HtmlConsole();
+    /**
+     * 
+     * @constructor
+     * @param {Document} doc Document to create mock elements.
+     */
+    Mocks = function (doc) {
+        if (!doc) {
+            throw new Error('Cannot create instance of testboy.Mocks: the document isn\'t specified');
+        }
+        this._doc = doc;
+    };
 
-    // standard test case
-    var standardTestCase = new TestCase("default");
+    Mocks.prototype = {
 
-    // add logger targets
-    logger.addTarget(out);
-    if (browserConsole.isAvailable) {
-        logger.addTarget(browserConsole);
-    }
+        /**
+         * @type {Document}
+         * @private
+         */
+        _doc: null,
 
+        /**
+         * @return {HTMLElement}
+         */
+        div: function () {
+            return this._doc.createElement('div');
+        },
 
+        element: function () {
+            return this._doc.createElement('span');
+        },
+
+        anchor: function (href) {
+            var anchor = this._doc.createElement('a');
+            anchor.setAttribute('href', href);
+        }
+    };
 
 
     /**
-     * Provides handy aliases that are useful when writing test cases. Methods of this 
-     * class can be globalized with 
-     * <code>testboy.globalize(testboy.alias)</code>. Usage example:
-     * <pre>
-     *   testboy.globalize(testboy.alias);
-     *   
-     *   testCase("My Test Case", function () {
-     *
-     *       setUp(function () {
-     *           // set up the fixture
-     *       });
-     *
-     *       test("Test alert() command", function () {
-     *           assertTrue(alert != undefined, "'alert' should be available");
-     *       });
-     *       
-     *        tearDown(fnuction () {
-     *           // tear down the fixture
-     *        });
-     *
-     *   });
-     * </pre>
-     * @static
-     * @class alias
-     * @namespace testboy
+     * Creates a test case and registers it at the default runner.
+     * @param {string} name Name of the newly created test case.
      */
-    var alias = testboy.alias = {
-        /**
-         * Creates a test case with the specified name and adds it to the standard runner. 
-         * This test case becomes the standard, thus <code>testboy.test()</code> will add 
-         * tests to this test case. Short form for: <code> new testboy.TestCase(name)</code>.
-         * Example:
-         * <pre>
-         *    var testCase = new testboy.TestCase("My Test");
-         *    testCase.test("test 1", function () {
-         *        assertTrue(true);
-         *    });
-         * 
-         *    // the same as
-         *    testboy.testCase("My Test", function () {
-         * 
-         *       test("test 1", function () {
-         *            assertTrue(true);
-         *       });
-         *    });
-         * </pre>
-         * This form allows using local variables instead of object level variables.
-         * @method testCase
-         * @param {string} name Name of a test case.
-         */
-        testCase: function (name, fn) {
-            standardTestCase = new TestCase(name);
-            if (fn) {
-                fn(testboy);
-            }
-            runner.add(standardTestCase);
-        },
-
-        /**
-         * Alias for <code>TestCase.prototype.test()</code>. Adds a test function to the
-         * standard test case. See <code>testboy.testCase()</code>.
-         * @method test
-         * @param {sting} name Test name. Any string including spaces, special chars etc.
-         * @param {Function} fn Test function. It will be invoked when thst case is runner by 
-         * a runner.
-         */
-        test: function (name, fn) {
-            if (!standardTestCase) {
-                throw new Error("No test case defined.");
-            }
-            standardTestCase.test(name, fn);
-        },
-
-        /**
-         * Alias for <code>TestCase.prototype.runBefore()</code>. This method is invoked before 
-         * any test is run.
-         * @method runBefore
-         * @param {Function} fn Test function. It will be invoked when thst case is runner by 
-         * a runner.
-         */
-        runBefore: function (fn) {
-            standardTestCase.runBefore = fn;
-        },
-
-
-        setUp: function (fn) {
-            standardTestCase.setUp = fn;
-        },
-
-        tearDown: function (fn) {
-            standardTestCase.tearDown = fn;
-        },
-
-        start: function () {
-            if (runner.isEmpty() && standardTestCase.hasTests) {
-                runner.add(standardTestCase);
-            }
-            runner.run();
-        }
+    testboy.createTestCase = function (name) {
+        var testCase = new TestCase(name);
+        testboy.runner.add(testCase);
+        return testCase;
     };
 
+    testboy.run = function () {
+        testboy.runner.run();
+    };
 
-} (testboy));
- 
+    testboy.test = function (name, fn) {
+        if (!standardTestCase) {
+            standardTestCase = testboy.createTestCase('Standard Test Case');
+        }
+        standardTestCase.addTest(name, fn);
+    };
+
+    // export constructors
+    testboy.Type = Type;
+    testboy.TestCase = TestCase;
+    testboy.TestSuite = TestSuite;
+    testboy.HtmlConsole = HtmlConsole;
+    testboy.TestResult = TestResult;
+    testboy.ResultCollector = ResultCollector;
+    testboy.Runner = Runner;
+    testboy.AssertionError = AssertionError;
+    testboy.Mocks = Mocks;
+
+    testboy.assert  = assert;
+    testboy.mocks   = new Mocks(document);
+    testboy.out     = out = new HtmlConsole();
+    testboy.runner  = new Runner();
+
+    // write the styles used by testboy ui components (e.g. HtmlConsole)
+    writeHTML('<style type="text/css">.tb-console {display: block;font-family:courier new;font-size: 9pt;border:1px solid #ccc;border-width: 1px 1px 0 1px} .tb-console .tb-c-ln {display:block;padding:2px;border-bottom: 1px solid #ccc;margin: 0;} .tb-console .tb-c-ln.fin {color: green;} .tb-console .tb-c-ln.inf {color: black;} .tb-console .tb-c-ln.war {color: orange;} .tb-console .tb-c-ln.err {color: red;} .tb-console .tb-pn {color: #881391;}</style>');
+
+
+}(testboy));
 
 
